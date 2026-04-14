@@ -44,7 +44,7 @@ class LivresDAOTests : FunSpec({
         val livreGen = Arb.string(minSize = 1).filter { it.isNotBlank() }
 
         checkAll(Arb.list(livreGen, range = 1..50)) { titres ->
-
+            dao.clear()
             // Ajout de livres avec des titres aléatoires
             titres.forEach { titre ->
                 dao.addLivre(Livre(title = titre, author = "Auteur Test"))
@@ -56,7 +56,7 @@ class LivresDAOTests : FunSpec({
             result.size shouldBe titres.size
 
             // 2. Invariant d'ordre : La liste doit être triée par titre
-            result.shouldBeSortedWith(compareBy { it.title })
+            result.shouldBeSortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.title })
         }
     }
 
