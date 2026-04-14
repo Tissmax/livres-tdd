@@ -3,6 +3,10 @@ plugins {
     kotlin("plugin.spring") version "2.2.21"
     id("org.springframework.boot") version "4.0.5"
     id("io.spring.dependency-management") version "1.1.7"
+    id ("java")
+    id ("info.solidsoft.pitest") version "1.19.0"
+    jacoco
+
 }
 
 group = "com.mathis"
@@ -38,4 +42,25 @@ kotlin {
 tasks.withType<Test> {
     useJUnitPlatform()
     systemProperty("kotest.framework.classpath.scanning.autoscan.disable", "true")
+}
+
+tasks.test {
+    finalizedBy(tasks.jacocoTestReport) // report is always generated after tests run
+}
+tasks.jacocoTestReport {
+    dependsOn(tasks.test) // tests are required to run before generating the report
+}
+
+pitest {
+    // Cible spécifiquement votre package
+    targetClasses.set(listOf("com.mathis.*"))
+
+    // Utilise l'exécuteur JUnit5 (compatible avec Kotest)
+    testPlugin.set("junit5")
+
+    // Génère un rapport HTML détaillé
+    outputFormats.set(listOf("HTML", "XML"))
+
+    // Mutation engine pour Kotlin
+    pitestVersion.set("1.16.0")
 }
