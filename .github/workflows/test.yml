@@ -1,0 +1,43 @@
+name: Kotlin CI with Kotest
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      pull-requests: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      # 1. Étape : Build de l'application
+      - name: Build with Gradle
+        run: ./gradlew assemble
+
+      # 2. Étape : Lancement des tests
+      - name: Run Tests
+        run: ./gradlew test
+        continue-on-error: true 
+
+      # 3. Étape : Publier les résultats des tests
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: |
+            **/build/test-results/**/*.xml
