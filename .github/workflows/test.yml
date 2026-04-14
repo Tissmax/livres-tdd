@@ -56,7 +56,16 @@ jobs:
       # 2. Étape : Lancement des tests
       - name: Run Tests
         run: ./gradlew test
-        continue-on-error: true 
+        continue-on-error: true
+
+      - name: Run Mutation Tests
+        run: ./gradlew pitest
+        
+      - name: Archive Mutation Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutation-report
+          path: build/reports/pitest/
 
       # 3. Étape : Publier les résultats des tests
       - name: Publish Test Results
