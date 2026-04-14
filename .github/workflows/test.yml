@@ -29,16 +29,18 @@ jobs:
 
       # 1. Étape : Build de l'application
       - name: Build with Gradle
-        run: ./gradlew assemble
+        run: ./gradlew build
 
       # 2. Étape : Lancement des tests
       - name: Run Tests
-        run: ./gradlew test jacocoTestReport pitest
+        run: ./gradlew jacocoTestReport pitest
         continue-on-error: true    # generates coverage-report.md and publishes as checkrun
+
       #3 Edition du rapport de Jacoco
       - name: JaCoCo Code Coverage Report
         id: jacoco_reporter
         uses: PavanMudigonda/jacoco-reporter@v5.1
+        if: always()
         with:
           coverage_results_path: build/reports/jacoco/test/jacocoTestReport.xml
           coverage_report_name: Coverage
@@ -50,6 +52,7 @@ jobs:
 
       # Publish Coverage Job Summary  # Optional
       - name: Add Jacocoo report to workflow run summary
+        if: always()
         run: |
           echo "| Outcome | Value |" >> $GITHUB_STEP_SUMMARY
           echo "| --- | --- |" >> $GITHUB_STEP_SUMMARY
@@ -57,10 +60,10 @@ jobs:
           echo "| :heavy_check_mark: Number of Lines Covered | ${{ steps.jacoco_reporter.outputs.covered_lines }} |" >> $GITHUB_STEP_SUMMARY
           echo "| :x: Number of Lines Missed | ${{ steps.jacoco_reporter.outputs.missed_lines }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Total Number of Lines | ${{ steps.jacoco_reporter.outputs.total_lines }} |" >> $GITHUB_STEP_SUMMARY
-      
 
       - name: Archive Mutation Report
         uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: mutation-report
           path: build/reports/pitest/
