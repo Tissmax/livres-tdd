@@ -26,19 +26,28 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
           
-    # generates coverage-report.md and publishes as checkrun
+
+      # 1. Étape : Build de l'application
+      - name: Build with Gradle
+        run: ./gradlew assemble
+
+      # 2. Étape : Lancement des tests
+      - name: Run Tests
+        run: ./gradlew test jacocoTestReport pitest
+        continue-on-error: true    # generates coverage-report.md and publishes as checkrun
+      #3 Edition du rapport de Jacoco
       - name: JaCoCo Code Coverage Report
         id: jacoco_reporter
         uses: PavanMudigonda/jacoco-reporter@v5.1
         with:
-          coverage_results_path: jacoco-report/test.xml
+          coverage_results_path: build/reports/jacoco/test/jacocoTestReport.xml
           coverage_report_name: Coverage
           coverage_report_title: JaCoCo
           skip_check_run: false
           minimum_coverage: 80
           fail_below_threshold: false
           publish_only_summary: false
-      
+
       # Publish Coverage Job Summary  # Optional
       - name: Add Jacocoo report to workflow run summary
         run: |
@@ -49,25 +58,14 @@ jobs:
           echo "| :x: Number of Lines Missed | ${{ steps.jacoco_reporter.outputs.missed_lines }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Total Number of Lines | ${{ steps.jacoco_reporter.outputs.total_lines }} |" >> $GITHUB_STEP_SUMMARY
       
-      # 1. Étape : Build de l'application
-      - name: Build with Gradle
-        run: ./gradlew assemble
 
-      # 2. Étape : Lancement des tests
-      - name: Run Tests
-        run: ./gradlew test
-        continue-on-error: true
-
-      - name: Run Mutation Tests
-        run: ./gradlew pitest
-        
       - name: Archive Mutation Report
         uses: actions/upload-artifact@v4
         with:
           name: mutation-report
           path: build/reports/pitest/
 
-      # 3. Étape : Publier les résultats des tests
+      # 4. Étape : Publier les résultats des tests
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2
         if: always()
